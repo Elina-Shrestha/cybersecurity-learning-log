@@ -4,22 +4,22 @@ Cybersecurity is the practice of protecting system, network or data from digital
 
 # The CIA Triad
 
-- ** Confidentiality** : Only authorized person can see the data.
+- **Confidentiality** : Only authorized person can see the data.
   Affected by: data breach, eavesdropping | Solution: encryption, access control
-- ** Integrity **: Data is accurate and has not been tampered with.
+- **Integrity**: Data is accurate and has not been tampered with.
   Affected by: malware, unauthorized edits | Solution: hashing, signatures
-- ** Availability **: Data ia available anytime.
+- **Availability**: Data ia available anytime.
   Affected by: ransomware, DDoS | Solution: DDoS protection, redundancy
 
 # AAA and DAD
 
-Authentication- proves who you are (password, OTP, signatures)
-Authorization- what you're allowed to touch
-Accounting- logging what was done by whom
+- Authentication- proves who you are (password, OTP, signatures)
+- Authorization- what you're allowed to touch
+- Accounting- logging what was done by whom
 
-Disclosure- data revealed to wrong eyes
-Alteration- data changed quietly
-Destruction- data/service knocked offline
+- Disclosure- data revealed to wrong eyes
+- Alteration- data changed quietly
+- Destruction- data/service knocked offline
 
 # Hackers
 

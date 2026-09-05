@@ -29,15 +29,15 @@
 # OSI Model
 
 7 layers reference model. It is called a reference model before it is just used as a look-up model as it is more detailed. Otherwise TCP/IP model is widely used.
-|Layer No.|Layer Name|What it is responsible for|Examples|Attacks that live here|
+ |  Layer No. |  Layer Name | What it is responsible for | Examples |  Attacks that live here  | 
 -----------------------------------------------------
-|7|Application Layer|Protocol that you device speaks|http,smtp,ftp,dns|Phishing,SQL injection|
-|6|Presentation Layer|Formatting,encoding,encryption|ASCII,UTF-8,JPEG|Weak cipher,expired certs|
-|5|Session Layer|Start, maintain and end a dialogue|TLS session resumption|Session hijacking,token theft|
-|4|Transport Layer|Reliability,ordering and port numbers|TCP,UDP|SYN flood,port scanning|
-|3|Network Layer|Logical Addressing and routing|Router,IP,ICMP|IP spoofing,ICMP tunneling|
-|2|Data Layer|Getting frame in one physical hop|MAC,switches,ethernet|MAC flooding,ARP spoofing|
-|1|Physical Layer|Raw Signals-radio,light,voltage|Cable,fibre,WiFi signals|Jamming,theft|
+ | 7 | Application Layer | Protocol that you device speaks | http,smtp,ftp,dns | Phishing,SQL injection | 
+ | 6 | Presentation Layer | Formatting,encoding,encryption | ASCII,UTF-8,JPEG | Weak cipher,expired certs | 
+ | 5 | Session Layer | Start, maintain and end a dialogue | TLS session resumption | Session hijacking,token theft | 
+ | 4 | Transport Layer | Reliability,ordering and port numbers | TCP,UDP | SYN flood,port scanning | 
+ | 3 | Network Layer | Logical Addressing and routing | Router,IP,ICMP | IP spoofing,ICMP tunneling | 
+ | 2 | Data Layer | Getting frame in one physical hop | MAC,switches,ethernet | MAC flooding,ARP spoofing | 
+ | 1 | Physical Layer | Raw Signals-radio,light,voltage | Cable,fibre,WiFi signals | Jamming,theft | 
 
 # Layers that actually do the delivery
 
@@ -48,23 +48,23 @@
 
 # TCP/IP Model
 
-|Layers|Maps onto OSI|What runs here|
+ | Layers | Maps onto OSI | What runs here | 
 -------------------------------------
-|Application Layer|Session, Presentation, Application|HTTP,SMTP,TLS,DNS|
-|Transport Layer|Transport|TCP,UDP|
-| Internet Layer|Network|IP,ICMP|
-|Network Access Layer|Physical, Data|Ethernet, WiFi, Cables|
+ | Application Layer | Session, Presentation, Application | HTTP,SMTP,TLS,DNS | 
+ | Transport Layer | Transport | TCP,UDP | 
+ |  Internet Layer | Network | IP,ICMP | 
+ | Network Access Layer | Physical, Data | Ethernet, WiFi, Cables | 
 
 # TCP VS UDP
 
-|TCP|UDP|
+ | TCP | UDP | 
 ---------
-|Connection-oriented-Handshake happens first|Connection-less-No handshake|
-|Every byte is numbered and must be acknowledged|No ordering, acknowledgement or retransmission|
-|Lost packets are retransmitted|Less overhead- 8 byte header instead of 20|
-|Slower during network conjestion|Faster|
-|Costly due to extra round trips, header|Tivially spoofable- Sender is not verified|
-|Data is received by the app in right order|Data is not received in correct order|
+ | Connection-oriented-Handshake happens first | Connection-less-No handshake | 
+ | Every byte is numbered and must be acknowledged | No ordering, acknowledgement or retransmission | 
+ | Lost packets are retransmitted | Less overhead- 8 byte header instead of 20 | 
+ | Slower during network conjestion | Faster | 
+ | Costly due to extra round trips, header | Tivially spoofable- Sender is not verified | 
+ | Data is received by the app in right order | Data is not received in correct order | 
 
 # TCP- Three way Handshake
 

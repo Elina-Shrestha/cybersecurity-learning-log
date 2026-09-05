@@ -29,8 +29,8 @@
 # OSI Model
 
 7 layers reference model. It is called a reference model before it is just used as a look-up model as it is more detailed. Otherwise TCP/IP model is widely used.
- |  Layer No. |  Layer Name | What it is responsible for | Examples |  Attacks that live here  | 
------------------------------------------------------
+ |  Layer No. |  Layer Name | What it is responsible for | Examples |  Attacks that live here | 
+ | ---------- | ----------- | -------------------------- | -------- | ----------------------- |
  | 7 | Application Layer | Protocol that you device speaks | http,smtp,ftp,dns | Phishing,SQL injection | 
  | 6 | Presentation Layer | Formatting,encoding,encryption | ASCII,UTF-8,JPEG | Weak cipher,expired certs | 
  | 5 | Session Layer | Start, maintain and end a dialogue | TLS session resumption | Session hijacking,token theft | 
@@ -49,7 +49,7 @@
 # TCP/IP Model
 
  | Layers | Maps onto OSI | What runs here | 
--------------------------------------
+ | ------ | ------------- | -------------- |
  | Application Layer | Session, Presentation, Application | HTTP,SMTP,TLS,DNS | 
  | Transport Layer | Transport | TCP,UDP | 
  |  Internet Layer | Network | IP,ICMP | 
@@ -58,7 +58,7 @@
 # TCP VS UDP
 
  | TCP | UDP | 
----------
+ | --- | --- |
  | Connection-oriented-Handshake happens first | Connection-less-No handshake | 
  | Every byte is numbered and must be acknowledged | No ordering, acknowledgement or retransmission | 
  | Lost packets are retransmitted | Less overhead- 8 byte header instead of 20 | 

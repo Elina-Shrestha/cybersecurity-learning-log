@@ -1,51 +1,31 @@
 # Subnetting
 
-An IP address without a mask is incomplete information. It tells you *which
-machine*, but not which network it belongs to, how big that network is, or
-where it stops. Before running something like `nmap 192.168.56.0/24`, I
-should be able to say out loud how many addresses that touches, where the
-range starts, and where it ends.
+An IP address alone is incomplete information. It tells you what machine, but not what network it's on, or how big that network is, or where it ends. I should be able to say out loud how many addresses `nmap 192.168.56.0/24` touches before I run it, and where the range starts and stops.
 
 ---
 
 ## Part 1: An address is 32 bits
-- An IPv4 address is four numbers (octets), each 0–255, separated by dots.
-- Each octet is 8 bits. 4 × 8 = 32 bits total — this is why IPv4 is called
-  "32-bit addressing."
-- 8 bits can hold 256 different values (0 through 255), which is why
-  `192.168.1.300` is invalid — 300 doesn't fit in a single octet.
-- Total possible IPv4 addresses: 2³² = 4,294,967,296 — which is why the
-  world ran out of public IPv4 addresses in the 2010s.
+- A An IPv4 address consists of 4 numbers (octets) separated by dots , with every number ranging from 0 to 255 .
+- An octet has 8 bits. 4 x 8 = 32 bits in all — hence IPv4 is called “32-bit addressing.”
+- 8 bits can hold 256 different values (0 through 255), this is why `192.168.1.300` 300 is invalid, it doesn't fit in a single octet.
+- Total potential IPv4 addresses: 2³² = 4,294,967,296 This is the reason why the world ran out of public IPv4 addresses in the 2010s.
 
-**Reading binary into decimal** — each bit position is worth double the one
-to its right:
-
+**Reading binary into decimal** —  each position is worth twice the position to the right of it: 
 | Bit position | 128 | 64 | 32 | 16 | 8 | 4 | 2 | 1 |
 |---|---|---|---|---|---|---|---|---|
-
 Example: `11000000` → 128 + 64 = **192**
 
-**Why subnet masks always look like 255, 254, 252, 248, 240, 224, 192, 128,
-or 0**: a mask's 1-bits always start from the left and run unbroken — never
-scattered (like `10101010`). Once the 1s stop, the rest are 0s. That's why
-only nine possible values exist per octet: 0, 128, 192, 224, 240, 248, 252,
-254, 255.
+**Why subnet masks always look like 255, 254, 252, 248, 240, 224, 192, 128, or 0**: a mask's 1-bits always start from the left and run unbroken -- never scattered (like `10101010`). After the 1s are gone , you only have the 0s . Therefore, each octet can only have nine values: 0, 128, 192, 224, 240, 248, 252, 254, 255.
 
 ---
 
-## Part 2: The mask splits the address
-Think of it like a postal address: `House 12, New Baneshwor, Kathmandu`.
-"New Baneshwor" gets the letter to the right neighborhood; "House 12" only
-means something *within* that neighborhood — there's a House 12 in every
-other neighborhood too.
+## Part 2. The mask divides the address in two
+It’s like a postal address: `House 12, New Baneshwor, Kathmandu`. “New Baneshwor" gets the letter to the right neighborhood; "House 12" only means something *within* that neighborhood -- there's a House 12 in every other neighborhood too.
 
-Same idea with `192.168.1.77 /24`: `192.168.1` is the neighborhood
-(network), `77` is the house (host). The mask is the **only** thing that
-tells you where the network part ends and the host part begins — the IP
-address alone can't tell you that.
+Same concept with `192.168.1.77 /24`: `192.168.1` is the neighborhood (network), `77` is the house (host). The mask is the **only** thing that tells you where the network part ends and the host part begins -- the IP address alone can't tell you that.
 
 **CIDR vs dotted-decimal — same thing, two notations:**
-- `/24` = CIDR notation → count of network bits (what Nmap expects)
+- `/24` = CIDR notation → count of network bits (what Nmap expects)7ikvb, nb;43 
 - `255.255.255.0` = dotted-decimal → the same 32 bits written as 4 octets
   (what Windows/routers show)
 

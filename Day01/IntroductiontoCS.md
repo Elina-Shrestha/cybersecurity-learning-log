@@ -41,7 +41,7 @@ People who breaks things to understand them.
   Urgency, look-alike domain, spelling errors, generic greeting, hidden links
 - Insider threats- trusted employee(malicious/careless)
 - Social engineering- hacking the person not the computer
-- APTs- Advanced Persistent Threats, funded groups that stay hidden for months
+- APTs- Advanced Persistent Threats, funded groups that stay hidden for months.
 
 # Attacker's mindset
 1. Reckon- Find the target and gather info.

@@ -210,3 +210,196 @@ elevated power. The sheet says to expect a short, boring list (`passwd`,
 
 ---
 
+## Part 6: Users, groups, and accounts
+
+| Command | Purpose |
+|---|---|
+| `whoami` / `id` | Who am I / full identity: UID, GID, all group memberships |
+| `groups USER` | Just the group memberships |
+| `cat /etc/passwd` | Every account — readable by all, despite the misleading name, no actual passwords in it |
+| `sudo cat /etc/shadow` | Where password hashes actually live — root-only, and that restriction is the entire point |
+| `awk -F: '$3==0 {print $1}' /etc/passwd` | Every account with UID 0 — should be exactly one (`root`); a second is a backdoor |
+| `sudo -l` | What am I allowed to run as root — first command in any privilege review, and reportedly the first thing an attacker types too |
+| `sudo visudo` | The only safe way to edit sudo rules — refuses to save a file that would lock everyone out |
+| `sudo usermod -aG GROUP USER` | Add to a group — the `-a` (append) matters; without it, I'd silently wipe every other group membership |
+| `sudo usermod -L` / `-U` | Lock / unlock an account — reversible, unlike deleting, which destroys evidence |
+
+**The seven fields of `/etc/passwd`, decoded** (using the sheet's own
+example):
+```
+diya : x : 1001 : 1001 : Diya,,, : /home/diya : /bin/bash
+```
+Login name → password placeholder (real hash is in `/etc/shadow`) → user
+ID → primary group ID → description → home directory → login shell.
+
+**One detail I want to remember specifically**: `/usr/sbin/nologin` as
+the shell is normal for service accounts, but *suspicious if it suddenly
+changes* — a service account that shouldn't be able to log in
+interactively, quietly gaining a real shell, is exactly the kind of quiet
+change worth noticing.
+
+---
+
+## Part 7: Processes — what's actually running
+
+| Command | Purpose |
+|---|---|
+| `ps aux` | Every process: user, PID, CPU, memory, and the **full command line** — the command line is the actual evidence |
+| `ps -ef --forest` / `pstree -p` | Parent-child relationships — "who launched this" answers more than "what is this" |
+| `top` / `htop` | Live view, busiest first |
+| `kill PID` | Ask a process to stop cleanly (signal 15) — always try this first |
+| `kill -9 PID` | Force-kill (signal 9) — no cleanup, last resort |
+| `ls -l /proc/PID/exe` | The *real* program behind a PID, even if its displayed name is lying |
+
+**The idea I want to hold onto**: a process's displayed name is just a
+label — `/proc/PID/exe` and the full command line in `ps aux` are what
+actually tell the truth, the same "don't trust the label" theme as `file`
+checking real content back in Part 1.
+
+---
+
+## Part 8: Services — what starts itself
+
+| Command | Purpose |
+|---|---|
+| `systemctl status NAME` | Running? enabled at boot? recent log lines — the starting point |
+| `systemctl list-units --type=service --state=running` | Everything currently running |
+| `systemctl list-unit-files --state=enabled` | Everything set to start at boot, even if not running now |
+| `sudo systemctl disable --now NAME` | Stop it now AND prevent it restarting — the actual hardening command |
+| `sudo systemctl mask NAME` | Stronger than disable — makes it unstartable even by hand |
+| `systemctl list-timers` | systemd's version of cron — a place attackers hide persistence, since fewer people check it |
+
+**Important distinction I don't want to blur**: `stop` only ends
+something until the next reboot; `disable` stops it coming back but
+doesn't touch its current running state. Hardening needs both together —
+which is exactly what `disable --now` does in one step.
+
+---
+
+## Part 9: Network — what's listening, and to whom
+
+| Command | Purpose |
+|---|---|
+| `ip a` / `ip -br a` | My own addresses |
+| `sudo ss -tulpn` | **The important one** — TCP/UDP, listening, process owner, numeric ports. Without `sudo`, I see the ports but not who owns them |
+| `sudo ss -tp` | Established connections and their owning processes — who's talking to whom right now |
+| `sudo lsof -i` | Same question, from the file-descriptor side — often clearer |
+| `dig NAME` / `dig -x IP` | Name → address, and address → name |
+| `sudo ufw status verbose` | Ubuntu's firewall status |
+
+**The single detail from this whole section I most want to remember**:
+`127.0.0.1:3306` only accepts connections from the machine itself.
+`0.0.0.0:3306` accepts connections from anywhere that can route to this
+host. That one difference in the address is often the entire security
+finding — a database that should only ever be `127.0.0.1` suddenly
+listening on `0.0.0.0` is a real exposure, not a cosmetic detail.
+
+This connects directly back to my port scanner project — `ss -tulpn` is
+essentially the "ground truth" answer that my own scanner is trying to
+infer from the outside, without needing access to the machine itself.
+
+---
+
+## Part 10: Logs — where Linux writes down what happened
+
+| Command | Purpose |
+|---|---|
+| `sudo journalctl -u SERVICE` | Everything one service has logged |
+| `sudo journalctl -f` | Follow live, like `tail -f` |
+| `sudo journalctl --since "1 hour ago"` | Time-bounded search |
+| `sudo grep "Failed password" /var/log/auth.log` | Failed logins (Debian/Ubuntu; `/var/log/secure` on RHEL-family) |
+| `sudo grep "Accepted" /var/log/auth.log` | Successful logins — method and source address |
+| `last` / `sudo lastb` | Recent successful logins / recent **failed** logins (often more interesting) |
+
+**Key log locations to remember:**
+
+| Path | What's there |
+|---|---|
+| `/var/log/auth.log` | Logins, sudo, SSH, account changes (Debian/Ubuntu) |
+| `/var/log/secure` | Same, on RHEL-family systems |
+| `/var/log/syslog` | General system messages |
+| `~/.bash_history` | Commands a user typed — easy to edit/delete, so **a lead, never proof** |
+
+That last point matters: unlike a properly configured system log,
+`.bash_history` is something the user themselves controls, so I shouldn't
+treat it as reliable evidence the way I would `auth.log` or `journalctl`.
+
+---
+
+## Part 11: Patching and packages
+
+```bash
+apt list --upgradable      # what's out of date (safe, changes nothing)
+sudo apt update            # refresh the catalogue (installs nothing)
+sudo apt upgrade           # actually install updates
+dpkg -S /path/to/file      # which package owns a file I didn't expect
+cat /etc/os-release        # which distro/version this really is
+uname -r                   # running kernel version (a patched kernel needs a reboot to take effect)
+sudo lynis audit system    # a free automated hardening audit
+```
+
+**Small but important distinction**: `apt update` refreshes what's
+*available*; it installs nothing by itself. Skipping it before `apt
+upgrade` means patching from a stale list — an easy mistake to make by
+assuming "update" and "upgrade" are basically the same word.
+
+---
+
+## Part 12: Five ways people break their own machine
+Worth memorizing as warnings, not just facts:
+1. `rm -rf PATH` — one typo or stray space, and it's gone, no recycle bin. Always run the exact path through `ls` first.
+2. `chmod 777 FILE` — "fixes" nothing, hands full access to every account on the system.
+3. `chmod -R` / `chown -R` aimed at `/` or `/etc` — does exactly what I told it, everywhere, instantly, irreversibly.
+4. `nano /etc/sudoers` — one syntax error locks everyone out of sudo. Always use `visudo`, which refuses to save something broken.
+5. `curl URL | sudo bash` — running unread code, as root, from a machine I don't control. Download it, read it, *then* run it.
+
+---
+
+## Part 13: A first-hour triage sequence (read-only, changes nothing)
+
+This is the section I want to actually be able to run from memory one day:
+
+| # | Command | The question it answers |
+|---|---|---|
+| 1 | `id ; sudo -l` | Who am I, what am I allowed to do — establish my own footing first |
+| 2 | `who ; last \| head -20` | Who's on the box now/recently — odd hours or unrecognized addresses are the flag |
+| 3 | `sudo lastb \| head -20` | Who's been failing to log in — a burst against one account is brute force; one failure each across many accounts is password spraying |
+| 4 | `awk -F: '$3==0 {print $1}' /etc/passwd` | Is there more than one root-equivalent account? |
+| 5 | `ps aux --sort=-%cpu \| head -15` | What's running, busiest first — read the full command line |
+| 6 | `sudo ss -tulpn` | What's listening, owned by whom — anything on `0.0.0.0` I can't explain |
+| 7 | `systemctl list-units --type=service --state=running` | What services are up — compare against a known-good build |
+| 8 | `find / -perm -4000 -type f 2>/dev/null` | What runs with borrowed power |
+| 9 | `find /etc /home -mmin -1440 -type f 2>/dev/null` | What's been edited in the last 24 hours |
+| 10 | `sudo journalctl --since "24 hours ago" -p err` | What has the system complained about |
+
+**Two rules that apply to the whole sequence:**
+- **Record as I go** — pipe through `| tee ~/triage.txt` so the output,
+  order, and timestamps are preserved afterward. Memory isn't evidence.
+- **Change nothing yet** — every command above only *reads*. The moment
+  I start killing processes or editing files, I'm destroying the record
+  I was supposed to be collecting. This is the same principle as the
+  forensic chain-of-custody notes from Wireshark — investigate first,
+  act second.
+
+---
+
+## The six commands to have cold, no matter what
+```
+ls -lah
+grep -rn
+find / -perm -4000 -type f 2>/dev/null
+ps aux
+sudo ss -tulpn
+sudo -l
+```
+Between them: what's here, what's inside it, what runs with borrowed
+power, what's running, what's listening, and what am I allowed to do.
+
+## What I'd still want to practice
+- Actually running the full Part 13 triage sequence on a real VM,
+  start to finish, timing myself — reading it is not the same as being
+  able to reach for it under pressure
+- Getting fast enough with `awk`/`cut` field extraction that I don't need
+  to look up the syntax every single time — right now I understand *why*
+  each worked example works, but couldn't yet write one from scratch
+  without a reference

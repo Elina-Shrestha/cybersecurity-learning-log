@@ -277,3 +277,99 @@ The group membership change may require logging out and back in. Avoid running t
 4. Reboot if the Npcap installation requests it.
 
 If no capture interfaces appear on Windows, Npcap is a primary thing to check.
+---
+
+# 8. Useful Initial Interface Settings
+
+Recommended projector/class settings:
+
+- **Time:** Seconds Since Beginning of Capture
+- **Precision:** Milliseconds
+- **Zoom:** Increase the packet-list display
+- **Network Name Resolution:** Disable it
+- **Colorising:** Keep packet colouring enabled
+
+Disabling name resolution avoids unnecessary reverse-DNS lookups from the analysis machine.
+
+---
+
+# 9. Wireshark Interface
+
+## Capture interfaces
+
+Common interfaces include:
+
+- `eth0` — Ethernet
+- `wlan0` — Wi-Fi
+- `lo` — loopback
+- `any` — all interfaces on Linux
+
+The small traffic graph beside an interface helps identify which interface is actually carrying traffic.
+
+### Capture filter
+
+A **capture filter** is applied before packets are recorded and uses BPF/tcpdump-style syntax.
+
+Example:
+
+```text
+tcp port 80
+```
+
+The loopback interface is useful for safe local captures. The supplied TLS exercise was built using loopback traffic, a local TLS server, and a client-generated key log.
+
+---
+
+# 10. The Three Wireshark Panes
+
+### 1. Packet List
+
+The upper pane contains one row per frame. It is primarily used for finding and scanning packets.
+
+### 2. Packet Details
+
+The middle pane shows the selected frame as a decoded, expandable protocol tree. This is where most analysis takes place.
+
+### 3. Packet Bytes
+
+The lower pane shows the raw bytes in hexadecimal alongside ASCII representation.
+
+A useful distinction:
+
+> Packet List = index, Packet Details = interpretation, Packet Bytes = raw evidence.
+
+If the decoded interpretation and expectations disagree, the raw bytes are the final reference for what was actually present in the capture.
+
+---
+
+# 11. Linked Selection and Headers
+
+Selecting a field in Packet Details highlights the corresponding bytes in Packet Bytes.
+
+For example:
+
+1. Expand IPv4.
+2. Select **Time to Live (TTL)**.
+3. Observe that one byte is highlighted in the hexadecimal view.
+
+This connects abstract protocol-header diagrams to the actual bytes in a captured frame.
+
+---
+
+# 12. Packet List Columns
+
+| Column | Meaning | Important caveat |
+|---|---|---|
+| No. | Frame number in this capture file | Not a network-level value |
+| Time | Time relative to capture start/configuration | Depends on display settings |
+| Source / Destination | Address information shown by Wireshark | The relevant address layer can differ |
+| Protocol | Highest protocol identified by dissectors | Identification is not infallible |
+| Length | Captured frame length | Truncation can affect what is represented |
+| Info | Wireshark-generated summary | Format varies by protocol |
+
+You can create custom columns by right-clicking a field and choosing **Apply as Column**.
+
+Useful custom fields include TCP window size and TLS server name.
+
+---
+

@@ -373,3 +373,256 @@ Useful custom fields include TCP window size and TLS server name.
 
 ---
 
+# 13. Useful Shortcuts
+
+| Shortcut | Function |
+|---|---|
+| `Ctrl + E` | Start/stop capture |
+| `Ctrl + R` | Restart capture |
+| `Ctrl + F` | Find a packet |
+| `Ctrl + G` | Go to packet number |
+| `Ctrl + M` | Mark a packet |
+| `Ctrl + T` | Set a time reference |
+| `Ctrl + →` | Expand the detail tree |
+| `Ctrl + / -` | Zoom |
+
+`Ctrl + T` is particularly useful for incident timelines because it allows later timestamps to be interpreted relative to a selected event.
+
+---
+
+# 14. Encapsulation
+
+Network protocols wrap higher-layer data inside lower-layer headers.
+
+A simplified HTTP/TCP/IPv4/Ethernet frame can be represented as:
+
+```text
+Ethernet header | IP header | TCP header | HTTP data | FCS
+   Layer 2         Layer 3      Layer 4      Layer 7
+```
+
+Typical header sizes shown in the material:
+
+- Ethernet II: 14 bytes
+- IPv4: 20 bytes
+- TCP: 20 bytes
+- Application data: variable
+
+Wireshark's protocol tree lets you open these layers one at a time.
+
+---
+
+# 15. Frame vs Packet vs Segment vs Datagram
+
+| Term | Meaning | Layer |
+|---|---|---|
+| **Frame** | Layer-2 unit including its Ethernet header/trailer | 2 |
+| **Packet** | Layer-3 IP unit | 3 |
+| **Segment** | TCP Layer-4 unit | 4 |
+| **Datagram** | Commonly used for UDP at Layer 4, and also for IP at Layer 3 | 3 or 4 |
+
+Technically, Wireshark numbers captured units as frames. In everyday networking discussions, people often use “packet” more generally.
+
+---
+
+# 16. The Wireshark “Frame” Pseudo-Layer
+
+The `Frame N` entry at the top of the detail tree is Wireshark metadata, not an additional network protocol.
+
+It can contain information such as:
+
+- arrival timestamp,
+- frame number,
+- captured length,
+- original length,
+- capture interface,
+- matching colouring rule.
+
+Examples of filters involving frame metadata:
+
+```text
+frame.len > 1000
+frame.time_relative >= 5
+frame.number == 42
+frame contains "password"
+```
+
+---
+
+# 17. Important Header Fields
+
+## Ethernet II
+
+```text
+eth.dst
+eth.src
+eth.type
+```
+
+Common EtherTypes include:
+
+- `0x0800` — IPv4
+- `0x0806` — ARP
+
+The first three bytes of a MAC address identify the manufacturer's OUI.
+
+## IPv4
+
+```text
+ip.src
+ip.dst
+ip.ttl
+ip.proto
+ip.len
+ip.id
+```
+
+Protocol numbers include:
+
+- `1` — ICMP
+- `6` — TCP
+- `17` — UDP
+
+## TCP
+
+```text
+tcp.srcport
+tcp.dstport
+tcp.seq
+tcp.ack
+tcp.flags
+tcp.window_size
+```
+
+UDP has an 8-byte header and does not contain TCP's sequence/acknowledgement fields.
+
+### TTL as a rough fingerprint
+
+The material gives these common starting TTL values:
+
+- Linux/macOS: 64
+- Windows: 128
+- Many network devices: 255
+
+Each routed hop generally reduces TTL by one. For example, an observed TTL of 122 can suggest a Windows-originating host approximately six hops away.
+
+This is only a heuristic: TTL can be modified or spoofed.
+
+---
+
+# 18. Lab 01 — First Capture
+
+**File:** `lab01_first_capture.pcap`  
+**Duration:** about 15 minutes  
+**Packets:** 12
+
+## Live capture
+
+Kali:
+
+```bash
+ping -c 4 192.168.56.1
+```
+
+Windows:
+
+```cmd
+ping -n 4 192.168.56.1
+```
+
+Then:
+
+```text
+nslookup example.com
+```
+
+## Analyse the supplied capture
+
+Identify:
+
+- the ARP request and response,
+- four ICMP ping round trips,
+- the hostname queried and its response,
+- the TTL and the operating-system suggestion.
+
+The broader goal is to narrate the capture as a sequence of events rather than merely identifying individual packets.
+
+---
+
+# 19. Capture Filters vs Display Filters
+
+This is one of the most important distinctions in Wireshark.
+
+| | Capture filter | Display filter |
+|---|---|---|
+| Applied | Before recording | After recording |
+| Controls | What is saved | What is displayed |
+| Reversible | No | Yes |
+| Syntax | BPF | Wireshark field syntax |
+| Example | `tcp port 80` | `tcp.port == 80` |
+
+Remember:
+
+> **Capture filters use spaces; display filters commonly use dots.**
+
+A practical rule is to capture broadly when possible and filter narrowly during analysis because packets excluded at capture time cannot be recovered later.
+
+---
+
+# 20. Display Filter Syntax
+
+The basic pattern is:
+
+```text
+field operator value
+```
+
+Examples:
+
+```text
+ip.src == 192.168.56.101
+tcp.port == 443
+http.request.method == "POST"
+dns
+```
+
+`dns` by itself acts as an existence test for packets containing a DNS layer.
+
+### Comparison operators
+
+```text
+==     equal
+!=     not equal
+>      greater than
+<      less than
+>=     greater than or equal
+<=     less than or equal
+contains
+matches ~
+in
+```
+
+### Logical operators
+
+```text
+&&     AND
+||     OR
+!      NOT
+()
+```
+
+Example:
+
+```text
+(http || dns) && ip.addr == 10.0.0.1
+```
+
+Use parentheses whenever combining AND/OR conditions.
+
+### Filter bar colours
+
+- **Green:** valid syntax
+- **Red:** syntax error
+- **Yellow:** syntactically valid but potentially not expressing the intended logic
+
+---

@@ -626,3 +626,176 @@ Use parentheses whenever combining AND/OR conditions.
 - **Yellow:** syntactically valid but potentially not expressing the intended logic
 
 ---
+# 21. The `!=` Trap
+
+A field such as `ip.addr` can represent either source or destination address.
+
+This filter:
+
+```text
+ip.addr != 192.168.56.101
+```
+
+does **not** necessarily mean “exclude packets involving this host.” It asks whether the field has a value different from the given address, which can be true for the other address in the packet.
+
+To negate the entire condition, use:
+
+```text
+!(ip.addr == 192.168.56.101)
+```
+
+The same logical issue can arise with fields such as:
+
+```text
+tcp.port
+udp.port
+eth.addr
+```
+
+The principle is:
+
+> **Negate the whole expression when that is the intended meaning.**
+
+---
+
+# 22. Ten Useful Display Filters
+
+```text
+ip.addr == 192.168.56.10
+tcp.port == 443
+http.request
+http.request.method == "POST"
+dns
+tcp.flags.syn == 1 && tcp.flags.ack == 0
+tcp.flags.reset == 1
+tls.handshake.type == 1
+tcp.analysis.retransmission
+frame contains "password"
+```
+
+What they help identify:
+
+- traffic involving a particular host,
+- a TCP port,
+- HTTP requests,
+- POST submissions,
+- DNS traffic,
+- connection attempts,
+- refused/aborted connections,
+- TLS Client Hello messages,
+- retransmissions,
+- frames containing a chosen string.
+
+The field is `tcp.flags.reset`, not `tcp.flags.rst`.
+
+---
+
+# 23. Building Filters Without Typing Everything
+
+Three useful methods:
+
+### Apply as Filter
+
+Right-click a field in Packet Details → **Apply as Filter** → **Selected**.
+
+Wireshark generates the correct field expression.
+
+### Conversation Filter
+
+Right-click a packet → **Conversation Filter** → choose the relevant conversation type.
+
+### Save and pin filters
+
+Use the filter bar's controls to save frequently used filters and pin them for quick access.
+
+Learning **Apply as Filter** first helps avoid field-name mistakes; the generated expression can then be edited manually.
+
+---
+
+# 24. Session 2 — Streams and Encryption
+
+Session 2 covers:
+
+- cleartext login analysis,
+- TCP behaviour,
+- statistics,
+- encrypted traffic,
+- TLS,
+- authorised decryption,
+- scans and beacons,
+- tshark.
+
+---
+
+# 25. Lab 02 — Cleartext HTTP Login
+
+**File:** `lab02_http_cleartext.pcap`  
+**Duration:** about 20 minutes  
+**Packets:** 19
+
+The task is to determine who logged in and what credential information was transmitted.
+
+Also identify:
+
+- the TCP three-way handshake,
+- the server software,
+- the issued session cookie,
+- the refused connection.
+
+### Follow TCP Stream
+
+Right-click a packet:
+
+```text
+Follow → TCP Stream
+```
+
+Wireshark gathers the packets belonging to that conversation, reassembles their payload in sequence, and presents the application-level exchange as readable text.
+
+The supplied example demonstrates that credentials sent over unencrypted HTTP can be visible to someone who can capture traffic on the network path.
+
+---
+
+# 26. Follow Stream
+
+The stream feature is available for several traffic types:
+
+| Stream | Typical use |
+|---|---|
+| TCP Stream | HTTP, FTP, SMTP, custom TCP protocols |
+| UDP Stream | DNS, syslog, and other UDP conversations |
+| TLS Stream | Decrypted TLS content when keys are available |
+| HTTP Stream | Individual HTTP request/response content |
+
+Following a stream usually changes the display filter to something similar to:
+
+```text
+tcp.stream eq 0
+```
+
+Clear the filter using the `X` beside the filter bar when you want to return to the full capture.
+
+---
+
+# 27. Recovering Transferred Files
+
+Wireshark can recover files that crossed the network when it can reconstruct them.
+
+Use:
+
+```text
+File → Export Objects → HTTP
+```
+
+Potential recovered objects include:
+
+- HTML,
+- images,
+- JavaScript,
+- CSS,
+- downloaded documents,
+- executables.
+
+In controlled malware-analysis environments, exported executables must be handled only inside an isolated VM with networking disabled. The supplied training captures intentionally avoid providing live malware binaries.
+
+---
